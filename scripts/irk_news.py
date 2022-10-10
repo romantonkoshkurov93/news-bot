@@ -1,19 +1,16 @@
 import json
 
 import requests
-
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from datetime import datetime
 
 from bot_settings.bot_config import irk_ru_url as root_url
 
-
 ua = UserAgent()
 
 
 def get_all_irk_news(url):
-
     headers = {
         'Host': 'www.irk.ru',
         'User-Agent': f'{ua.random}',
