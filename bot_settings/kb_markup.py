@@ -18,6 +18,9 @@ irkMenu = ReplyKeyboardMarkup(resize_keyboard=True) \
 # --- Habr menu ---
 btnHabrNews = KeyboardButton('Последние новости Habr')
 btnHabrFreshNews = KeyboardButton('Свежие новости Habr')
+btnHabrArticles = KeyboardButton('Последние статьи Habr')
+btnHabrFreshArticles = KeyboardButton('Свежие статьи Habr')
 habrMenu = ReplyKeyboardMarkup(resize_keyboard=True) \
     .add(btnHabrNews, btnHabrFreshNews) \
+    .add(btnHabrArticles, btnHabrFreshArticles) \
     .row(btnMain)

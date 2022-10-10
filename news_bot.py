@@ -7,10 +7,11 @@ from aiogram.dispatcher.filters import Text
 from aiogram.utils.markdown import hbold, hlink
 
 from bot_settings import kb_markup as nav
-from bot_settings.bot_config import token, token_test, user_id, irk_ru_url, habr_news_url
+from bot_settings.bot_config import token, token_test, user_id, irk_ru_url, habr_news_url, habr_articles_url
 
 from scripts.irk_news import check_irk_news_update
 from scripts.habr_news import check_habr_news_update
+from scripts.habr_articles import check_habr_fresh_articles
 
 bot = Bot(token=token, parse_mode=types.ParseMode.HTML)
 dp = Dispatcher(bot)
@@ -75,6 +76,7 @@ async def get_last_five_habr_news(message: types.Message):
         await message.answer(news)
 
 
+# --- Habr fresh news ---
 @dp.message_handler(Text(equals="Свежие новости Habr"))
 async def get_fresh_habr_news(message: types.Message):
     logging.info('[INFO] | Check fresh habr news')
@@ -88,6 +90,37 @@ async def get_fresh_habr_news(message: types.Message):
             await message.answer(news)
     else:
         await message.answer("Пока нет свежих новостей")
+
+
+# --- Habr all articles ---
+@dp.message_handler(Text(equals="Последние статьи Habr"))
+async def get_last_five_habr_articles(message: types.Message):
+    logging.info('[INFO] | Get last 5 habr articles.')
+    with open('dicts/habr_articles.json') as file:
+        articles_dict = json.load(file)
+
+    for k, v in sorted(articles_dict.items())[-5:]:
+        articles = f"{hbold(v['dict_id'])}\n\n" \
+                   f"{hbold(v['date_time'])}\n" \
+                   f"{hlink(v['article_title'], v['article_url'])}"
+
+        await message.answer(articles)
+
+
+# --- Habr fresh articles ---
+@dp.message_handler(Text(equals="Свежие статьи Habr"))
+async def get_fresh_habr_articles(message: types.Message):
+    logging.info('[INFO] | Check fresh habr articles')
+    fresh_habr_articles = check_habr_fresh_articles(habr_articles_url)
+
+    if len(fresh_habr_articles) >= 1:
+        for k, v in sorted(fresh_habr_articles.items()):
+            articles = f"{hbold(v['dict_id'])}\n\n" \
+                       f"{hbold(v['date_time'])}\n" \
+                       f"{hlink(v['article_title'], v['article_url'])}"
+            await message.answer(articles)
+    else:
+        await message.answer("Пока нет свежих статей")
 
 
 async def irk_news_every_hour():
@@ -118,6 +151,20 @@ async def habr_news_every_hour():
         await asyncio.sleep(3600)
 
 
+async def habr_articles_every_hour():
+    while True:
+        habr_fresh_articles = check_habr_fresh_articles(habr_articles_url)
+
+        if len(habr_fresh_articles) >= 1:
+            for k, v in sorted(habr_fresh_articles.items()):
+                habr_articles = f"{hbold(v['dict_id'])}\n\n" \
+                                f"{hbold(v['date_time'])}\n" \
+                                f"{hlink(v['article_title'], v['article_url'])}"
+                await bot.send_message(user_id, habr_articles)
+
+        await asyncio.sleep(3600)
+
+
 @dp.message_handler()
 async def bot_message(message: types.Message):
     if message.text == '⬅ Главное меню':
@@ -133,6 +180,7 @@ if __name__ == '__main__':
     asyncio.set_event_loop(loop)
     tasks = [
         loop.create_task(irk_news_every_hour()),
-        loop.create_task(habr_news_every_hour())
+        loop.create_task(habr_news_every_hour()),
+        loop.create_task(habr_articles_every_hour())
     ]
     executor.start_polling(dp)
