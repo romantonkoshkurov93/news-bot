@@ -47,12 +47,12 @@ def get_all_irk_news(url):
             "news_url": news_url
         }
 
-    with open("dicts/irk_news.json", "w", encoding='utf-8') as file:
+    with open("dicts/irk_news.json", "w") as file:
         json.dump(news_dict, file, indent=4, ensure_ascii=False)
 
 
 def check_irk_news_update(url):
-    with open("dicts/irk_news.json", encoding='utf-8') as file:
+    with open("dicts/irk_news.json") as file:
         news_dict = json.load(file)
 
     headers = {
@@ -63,7 +63,6 @@ def check_irk_news_update(url):
     }
 
     response = requests.get(url=url, headers=headers)
-
     soup = BeautifulSoup(response.text, 'lxml')
 
     news_cards = soup.find_all('li', class_='b-news-article-list-item')
@@ -99,7 +98,7 @@ def check_irk_news_update(url):
                 "news_url": news_url
             }
 
-    with open("dicts/irk_news.json", "w", encoding='utf-8') as file:
+    with open("dicts/irk_news.json", "w") as file:
         json.dump(news_dict, file, indent=4, ensure_ascii=False)
 
     return fresh_news
